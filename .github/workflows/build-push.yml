@@ -3,7 +3,7 @@ name: Generate SDK and OpenAPI
 on:
   push:
     branches:
-      - main # Triggers when you merge changes to your main branch
+      - master # Triggers when you merge changes to your main branch
 
 jobs:
   generate-and-publish:
@@ -84,4 +84,3 @@ jobs:
             git commit -m "feat: auto-update generated connectrpc sdk"
             git push origin main
           fi
-          
