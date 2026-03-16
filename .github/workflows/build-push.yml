@@ -84,3 +84,4 @@ jobs:
             git commit -m "feat: auto-update generated connectrpc sdk"
             git push origin main
           fi
+          
