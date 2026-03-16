@@ -1,0 +1,86 @@
+name: Generate SDK and OpenAPI
+
+on:
+  push:
+    branches:
+      - main # Triggers when you merge changes to your main branch
+
+jobs:
+  generate-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Protobuf Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Buf CLI
+        uses: bufbuild/buf-action@v1
+        with:
+          setup_only: true
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Lint and Format Protobuf 
+        run: |
+          buf format -w
+          buf lint
+
+      - name: Generate Code and OpenAPI
+        run: buf generate
+
+      # --- OPENAPI HANDLING ---
+      - name: Upload OpenAPI Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: openapi-spec
+          path: gen/openapi/openapi.yaml
+          retention-days: 7
+          # You can later add a step here to push this to S3 or a docs site
+
+      # --- GO SDK HANDLING ---
+      - name: Generate GitHub App Token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.CIVIL_APP_ID }}
+          private-key: ${{ secrets.CIVIL_APP_PRIVATE_KEY }}
+          # Grant access only to the SDK repo
+          owner: ${{ github.repository_owner }}
+          repositories: "civil-api-go"
+
+      - name: Checkout Go SDK Repository
+        uses: actions/checkout@v4
+        with:
+          repository: your-org/civil-api-go
+          token: ${{ steps.app-token.outputs.token }} # Use the dynamic app token
+          path: target-go-repo
+
+      - name: Copy Generated Go Code to SDK Repo
+        run: |
+          # Enter the target SDK repository
+          cd target-go-repo
+
+          # Safely remove old generated packages (keep git, go modules, and readme)
+          find . -mindepth 1 -maxdepth 1 \
+            ! -name '.git' \
+            ! -name 'go.mod' \
+            ! -name 'go.sum' \
+            ! -name 'README.md' \
+            -exec rm -rf {} +
+
+          # Copy the contents of the newly generated Go files to the root
+          cp -r ../gen/go/* .
+
+      - name: Commit and Push to Go SDK Repo
+        run: |
+          cd target-go-repo
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          
+          git add .
+          
+          # Only commit if there are changes
+          if git diff --staged --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "feat: auto-update generated connectrpc sdk"
+            git push origin main
+          fi
