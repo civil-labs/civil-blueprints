@@ -49,7 +49,7 @@ jobs:
       - name: Checkout Go SDK Repository
         uses: actions/checkout@v4
         with:
-          repository: your-org/civil-api-go
+          repository: civil-labs/civil-api-go
           token: ${{ steps.app-token.outputs.token }} # Use the dynamic app token
           path: target-go-repo
 
