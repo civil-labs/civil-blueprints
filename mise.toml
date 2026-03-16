@@ -1,0 +1,5 @@
+[tools]
+buf = "1.66.1"
+
+[tasks.build]
+run = "buf build"
