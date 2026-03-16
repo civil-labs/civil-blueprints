@@ -40,8 +40,8 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@v1
         with:
-          app-id: ${{ secrets.CIVIL_APP_ID }}
-          private-key: ${{ secrets.CIVIL_APP_PRIVATE_KEY }}
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.PRIVATE_KEY }}
           # Grant access only to the SDK repo
           owner: ${{ github.repository_owner }}
           repositories: "civil-api-go"
