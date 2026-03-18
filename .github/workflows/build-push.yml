@@ -24,7 +24,7 @@ jobs:
           buf lint
 
       - name: Generate Code and OpenAPI
-        run: buf generate
+        run: buf generate --include-imports
 
       # --- OPENAPI HANDLING ---
       - name: Upload OpenAPI Artifact
