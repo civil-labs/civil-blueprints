@@ -37,11 +37,11 @@ jobs:
 
       # --- GO SDK HANDLING ---
       - name: Generate GitHub App Token
-        id: app-token
+        id: go-app-token
         uses: actions/create-github-app-token@v1
         with:
-          app-id: ${{ secrets.APP_ID }}
-          private-key: ${{ secrets.PRIVATE_KEY }}
+          app-id: ${{ secrets.GO_APP_ID }}
+          private-key: ${{ secrets.GO_PRIVATE_KEY }}
           # Grant access only to the SDK repo
           owner: ${{ github.repository_owner }}
           repositories: "civil-api-go"
@@ -50,7 +50,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: civil-labs/civil-api-go
-          token: ${{ steps.app-token.outputs.token }} # Use the dynamic app token
+          token: ${{ steps.go-app-token.outputs.token }} # Use the dynamic app token
           path: target-go-repo
 
       - name: Copy Generated Go Code to SDK Repo
@@ -72,6 +72,57 @@ jobs:
       - name: Commit and Push to Go SDK Repo
         run: |
           cd target-go-repo
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          
+          git add .
+          
+          # Only commit if there are changes
+          if git diff --staged --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "feat: auto-update generated connectrpc sdk"
+            git push origin main
+          fi
+
+      # --- JAVASCRIPT SDK HANDLING ---
+      - name: Generate GitHub App Token
+        id: js-app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.JS_APP_ID }}
+          private-key: ${{ secrets.JS_PRIVATE_KEY }}
+          # Grant access only to the SDK repo
+          owner: ${{ github.repository_owner }}
+          repositories: "civil-api-js"
+
+      - name: Checkout JavaScript SDK Repository
+        uses: actions/checkout@v4
+        with:
+          repository: civil-labs/civil-api-js
+          token: ${{ steps.js-app-token.outputs.token }} # Use the dynamic app token
+          path: target-js-repo
+
+      - name: Copy Generated JavaScript Code to SDK Repo
+        run: |
+          # Enter the target SDK repository
+          cd target-js-repo
+
+          # Safely remove old generated packages (keep git, readme, and package definitions)
+          find . -mindepth 1 -maxdepth 1 \
+            ! -name '.git' \
+            ! -name 'package.json' \
+            ! -name 'index.js' \
+            ! -name 'index.d.ts' \
+            ! -name 'README.md' \
+            -exec rm -rf {} +
+
+          # Copy the contents of the newly generated JavaScript files to the root
+          cp -r ../gen/js/* .
+
+      - name: Commit and Push to JavaScript SDK Repo
+        run: |
+          cd target-js-repo
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           
