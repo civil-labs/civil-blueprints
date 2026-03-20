@@ -1,5 +1,7 @@
 [tools]
 buf = "1.66.1"
 
-[tasks.build]
-run = "buf build"
+[tasks.generate]
+description = "Runs generate and includes imports"
+run = "buf generate --include-imports"
+
