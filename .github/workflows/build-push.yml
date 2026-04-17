@@ -37,7 +37,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: openapi-spec
-          path: gen/public-output/openapi/openapi.yaml
+          path: gen/public-output/gen/openapi/openapi.yaml
           retention-days: 7
           # You can later add a step here to push this to S3 or a docs site
       
@@ -45,7 +45,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: openapi-spec
-          path: gen/internal-output/openapi/openapi.yaml
+          path: gen/internal-output/gen/openapi/openapi.yaml
           retention-days: 7
           # You can later add a step here to push this to S3 or a docs site
 
@@ -132,7 +132,7 @@ jobs:
             -exec rm -rf {} +
 
           # Copy the contents of the newly generated JavaScript files to the root
-          cp -r ../gen/internal-output/js/* .
+          cp -r ../gen/public-output/gen/js/* .
 
       - name: Commit and Push to JavaScript SDK Repo
         run: |
