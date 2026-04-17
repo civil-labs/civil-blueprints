@@ -23,15 +23,29 @@ jobs:
           buf format -w
           buf lint
 
-      - name: Generate Code and OpenAPI
+      - name: Generate Go Code
         run: buf generate --include-imports
 
+      - name: Generate JS Code and public OpenAPI spec
+        run: buf generate proto/public --include-imports --output gen/public-output
+
+      - name: Generate internal OpenAPI spec
+        run: buf generate proto/internal --include-imports --output gen/internal-output
+
       # --- OPENAPI HANDLING ---
-      - name: Upload OpenAPI Artifact
+      - name: Upload Public OpenAPI Artifact
         uses: actions/upload-artifact@v4
         with:
           name: openapi-spec
-          path: gen/openapi/openapi.yaml
+          path: gen/public-output/openapi/openapi.yaml
+          retention-days: 7
+          # You can later add a step here to push this to S3 or a docs site
+      
+      - name: Upload Internal OpenAPI Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: openapi-spec
+          path: gen/internal-output/openapi/openapi.yaml
           retention-days: 7
           # You can later add a step here to push this to S3 or a docs site
 
@@ -118,7 +132,7 @@ jobs:
             -exec rm -rf {} +
 
           # Copy the contents of the newly generated JavaScript files to the root
-          cp -r ../gen/js/* .
+          cp -r ../gen/internal-output/js/* .
 
       - name: Commit and Push to JavaScript SDK Repo
         run: |
