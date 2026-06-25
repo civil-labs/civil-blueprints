@@ -1,7 +1,7 @@
 [tools]
 buf = "1.66.1"
 
-[tasks.generate]
-description = "Runs generate and includes imports"
-run = "buf generate --include-imports"
+[tasks.generate-swagger]
+description = "Generate the public package with the OpenAPI spec"
+run = "buf generate proto/public --include-imports --output gen/public-output"
 
